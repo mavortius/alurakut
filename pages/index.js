@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AlurakutMenu, AlurakutProfileSidebarMenuDefault, OrkutNostalgicIconSet } from '../src/lib/AluraCommons'
 import MainGrid from '../src/components/MainGrid'
 import Box from '../src/components/Box'
@@ -23,6 +23,24 @@ function ProfileSidebar (props) {
   )
 }
 
+function ProfileRelationsBox (props) {
+  return <ProfileRelationsBoxWrapper>
+    <h2 className="smallTitle">
+      {props.title} ({props.items.length})
+    </h2>
+    <ul>
+      {props.items.slice(0, 6).map((item) => (
+        <li key={item.id}>
+          <a href={`https://github.com/${item.login}`}>
+            <img src={`https://github.com/${item.login}.png`} alt={item.login} />
+            <span>{item.login}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </ProfileRelationsBoxWrapper>
+}
+
 export default function Home () {
   const githubUser = 'mavortius'
   const [communities, setCommunities] = useState([{
@@ -30,7 +48,17 @@ export default function Home () {
     title: 'Eu odeio acordar cedo',
     image: 'https://alurakut.vercel.app/capa-comunidade-01.jpg'
   }])
-  const favPeople = ['juunegreiros', 'omariosouto', 'peas', 'rafaballerini']
+  const [followers, setFollowers] = useState([])
+  const [following, setFollowing] = useState([])
+
+  useEffect(() => {
+    fetch(`https://api.github.com/users/mavortius/followers`)
+      .then((response) => response.json())
+      .then((data) => setFollowers(data))
+    fetch(`https://api.github.com/users/mavortius/following`)
+      .then((response) => response.json())
+      .then((data) => setFollowing(data))
+  }, [])
 
   function handleSubmit (e) {
     e.preventDefault()
@@ -81,6 +109,7 @@ export default function Home () {
           </Box>
         </div>
         <div className="profileRelationsArea" style={{ gridArea: 'profileRelationsArea' }}>
+          <ProfileRelationsBox title="Seguidores" items={followers} />
           <ProfileRelationsBoxWrapper>
             <h2 className="smallTitle">
               Comunidades ({communities.length})
@@ -97,22 +126,7 @@ export default function Home () {
               ))}
             </ul>
           </ProfileRelationsBoxWrapper>
-          <ProfileRelationsBoxWrapper>
-            <h2 className="smallTitle">
-              Meus amigos ({favPeople.length})
-            </h2>
-
-            <ul>
-              {favPeople.map((person) => (
-                <li key={person}>
-                  <a href={`/users/${person}`} key={person}>
-                    <img src={`https://github.com/${person}.png`} alt={person} />
-                    <span>{person}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </ProfileRelationsBoxWrapper>
+          <ProfileRelationsBox title="Seguindo" items={following} />
         </div>
       </MainGrid>
     </>
