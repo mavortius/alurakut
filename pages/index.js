@@ -43,11 +43,7 @@ function ProfileRelationsBox (props) {
 
 export default function Home () {
   const githubUser = 'mavortius'
-  const [communities, setCommunities] = useState([{
-    id: '1',
-    title: 'Eu odeio acordar cedo',
-    image: 'https://alurakut.vercel.app/capa-comunidade-01.jpg'
-  }])
+  const [communities, setCommunities] = useState([])
   const [followers, setFollowers] = useState([])
   const [following, setFollowing] = useState([])
 
@@ -58,18 +54,50 @@ export default function Home () {
     fetch(`https://api.github.com/users/mavortius/following`)
       .then((response) => response.json())
       .then((data) => setFollowing(data))
+    fetch('https://graphql.datocms.com', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'bd60ca8231287bbb3039ca33540160',
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        'query': `query { 
+        allCommunities {
+            id 
+            title
+            imageUrl
+            creatorSlug 
+          } 
+        }
+      `
+      })
+    })
+      .then((response) => response.json())
+      .then((jsonData) => setCommunities(jsonData.data.allCommunities))
   }, [])
 
   function handleSubmit (e) {
     e.preventDefault()
     const formData = new FormData(e.target)
     const community = {
-      id: new Date().toISOString(),
       title: formData.get('title'),
-      image: formData.get('image')
+      imageUrl: formData.get('image'),
+      creatorSlug: githubUser
     }
-    const updatedCommunities = [...communities, community]
-    setCommunities(updatedCommunities)
+
+    fetch('/api/communities', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(community)
+    })
+      .then(async (response) => {
+        const data = await response.json()
+        const updatedCommunities = [...communities, data.created]
+        setCommunities(updatedCommunities)
+      })
   }
 
   return (
@@ -118,8 +146,8 @@ export default function Home () {
             <ul>
               {communities.map((community) => (
                 <li key={community.id}>
-                  <a href={`/users/${community.title}`} key={community.id}>
-                    <img src={community.image} alt={community.title} />
+                  <a href={`/communities/${community.title}`} key={community.id}>
+                    <img src={community.imageUrl} alt={community.title} />
                     <span>{community.title}</span>
                   </a>
                 </li>
