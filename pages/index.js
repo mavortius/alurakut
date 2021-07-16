@@ -48,21 +48,22 @@ export default function Home () {
   const [following, setFollowing] = useState([])
 
   useEffect(() => {
-    fetch(`https://api.github.com/users/mavortius/followers`)
-      .then((response) => response.json())
-      .then((data) => setFollowers(data))
-    fetch(`https://api.github.com/users/mavortius/following`)
-      .then((response) => response.json())
-      .then((data) => setFollowing(data))
-    fetch('https://graphql.datocms.com', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'bd60ca8231287bbb3039ca33540160',
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        'query': `query { 
+    Promise.all([
+      fetch(`https://api.github.com/users/mavortius/followers`)
+        .then((response) => response.json())
+        .then((data) => setFollowers(data)),
+      fetch(`https://api.github.com/users/mavortius/following`)
+        .then((response) => response.json())
+        .then((data) => setFollowing(data)),
+      fetch('https://graphql.datocms.com', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'bd60ca8231287bbb3039ca33540160',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          'query': `query { 
         allCommunities {
             id 
             title
@@ -71,10 +72,11 @@ export default function Home () {
           } 
         }
       `
+        })
       })
-    })
-      .then((response) => response.json())
-      .then((jsonData) => setCommunities(jsonData.data.allCommunities))
+        .then((response) => response.json())
+        .then((jsonData) => setCommunities(jsonData.data.allCommunities))
+    ])
   }, [])
 
   function handleSubmit (e) {
