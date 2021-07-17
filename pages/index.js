@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
-import { AlurakutMenu, AlurakutProfileSidebarMenuDefault, OrkutNostalgicIconSet } from '../src/lib/AluraCommons'
+import nookies from 'nookies'
+import jwt from 'jsonwebtoken'
+import { AlurakutMenu, AlurakutProfileSidebarMenuDefault, BASE_URL, OrkutNostalgicIconSet } from '../src/lib/AluraCommons'
 import MainGrid from '../src/components/MainGrid'
 import Box from '../src/components/Box'
 import { ProfileRelationsBoxWrapper } from '../src/components/ProfileRelations'
@@ -41,8 +43,8 @@ function ProfileRelationsBox (props) {
   </ProfileRelationsBoxWrapper>
 }
 
-export default function Home () {
-  const githubUser = 'mavortius'
+export default function Home (props) {
+  const githubUser = props.githubUser
   const [communities, setCommunities] = useState([])
   const [followers, setFollowers] = useState([])
   const [following, setFollowing] = useState([])
@@ -161,4 +163,35 @@ export default function Home () {
       </MainGrid>
     </>
   )
+}
+
+export async function getServerSideProps (context) {
+  const cookies = nookies.get(context)
+  const token = cookies.USER_TOKEN
+  const response = await fetch(BASE_URL + 'api/auth', {
+    headers: {
+      Authorization: token
+    }
+  })
+  const { isAuthenticated } = await response.json()
+
+  console.log(isAuthenticated)
+
+  if(!isAuthenticated) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false
+      }
+    }
+  }
+
+  const { githubUser } = jwt.decode(token)
+
+  return {
+    props: {
+      githubUser,
+      isAuthenticated
+    }
+  }
 }

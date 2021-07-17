@@ -2,7 +2,7 @@ import React from 'react'
 import NextLink from 'next/link'
 import styled, { css } from 'styled-components'
 
-const BASE_URL = 'http://alurakut.vercel.app/'
+export const BASE_URL = 'https://alurakut.vercel.app/'
 const v = '1'
 
 function Link ({ href, children, ...props }) {
