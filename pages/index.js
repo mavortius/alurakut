@@ -6,14 +6,18 @@ import MainGrid from '../src/components/MainGrid'
 import Box from '../src/components/Box'
 import { ProfileRelationsBoxWrapper } from '../src/components/ProfileRelations'
 
+const githubUrl = 'https://github.com/'
+const githubApiUsersUrl = 'https://api.github.com/users/'
+const datoCmsUrl = 'https://graphql.datocms.com'
+
 function ProfileSidebar (props) {
   return (
     <Box as="aside">
-      <img style={{ borderRadius: '8px' }} src={`https://github.com/${props.githubUser}.png`} alt="Avatar" />
+      <img style={{ borderRadius: '8px' }} src={`${githubUrl}${props.githubUser}.png`} alt="Avatar" />
       <hr />
 
       <p>
-        <a className="boxLink" href={`https://github.com/${props.githubUser}`}>
+        <a className="boxLink" href={`${githubUrl}${props.githubUser}`}>
           @{props.githubUser}
         </a>
       </p>
@@ -33,8 +37,8 @@ function ProfileRelationsBox (props) {
     <ul>
       {props.items.slice(0, 6).map((item) => (
         <li key={item.id}>
-          <a href={`https://github.com/${item.login}`}>
-            <img src={`https://github.com/${item.login}.png`} alt={item.login} />
+          <a href={`${githubUrl}${item.login}`}>
+            <img src={`${githubUrl}${item.login}.png`} alt={item.login} />
             <span>{item.login}</span>
           </a>
         </li>
@@ -44,20 +48,22 @@ function ProfileRelationsBox (props) {
 }
 
 export default function Home (props) {
-  const githubUser = props.githubUser
   const [communities, setCommunities] = useState([])
   const [followers, setFollowers] = useState([])
   const [following, setFollowing] = useState([])
+  const githubUser = props.githubUser
+  const followersUrl = `${githubApiUsersUrl}${githubUser}/followers`
+  const followingUrl = `${githubApiUsersUrl}${githubUser}/following`
 
   useEffect(() => {
     Promise.all([
-      fetch(`https://api.github.com/users/mavortius/followers`)
+      fetch(followersUrl)
         .then((response) => response.json())
         .then((data) => setFollowers(data)),
-      fetch(`https://api.github.com/users/mavortius/following`)
+      fetch(followingUrl)
         .then((response) => response.json())
         .then((data) => setFollowing(data)),
-      fetch('https://graphql.datocms.com', {
+      fetch(datoCmsUrl, {
         method: 'POST',
         headers: {
           'Authorization': 'bd60ca8231287bbb3039ca33540160',
@@ -174,8 +180,6 @@ export async function getServerSideProps (context) {
     }
   })
   const { isAuthenticated } = await response.json()
-
-  console.log(isAuthenticated)
 
   if(!isAuthenticated) {
     return {
